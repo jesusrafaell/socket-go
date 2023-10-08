@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>WebSocket Client</title>
+	</head>
+	<body style="background-color: black">
+		<div>
+			<button style="margin-bottom: 10px" onclick="getIncident()">Get</button>
+			<div style="margin-bottom: 10px">
+				<input type="text" id="descriptionInput" placeholder="Description" />
+				<input type="text" id="latitudeInput" placeholder="Latitude" />
+				<input type="text" id="longitudeInput" placeholder="Longitude" />
+				<button onclick="createIncident()">Create</button>
+			</div>
+			<div style="margin-bottom: 10px">
+				<input type="text" id="idInput" placeholder="ID" />
+				<button onclick="updateIncident()">Update</button>
+				<button onclick="cancelIncident()">Cancel</button>
+			</div>
+		</div>
+
+		<!-- New element to display received messages -->
+		<div id="messageHistory" style="color: white"></div>
+
+		<script>
+			var i = 0;
+			const socket = new WebSocket('ws://localhost:8000/ws');
+			const messageHistoryDiv = document.getElementById('messageHistory');
+
+			socket.onopen = function (event) {
+				console.log('Connection opened');
+			};
+
+			socket.onmessage = function (event) {
+				const data = JSON.parse(event.data);
+				console.log(data);
+				let incidents;
+				switch (data.type) {
+					case 'listIncidents':
+					case 'deleted':
+						incidents = data.data;
+						cleanHistory();
+						for (let i = 0; i < incidents.length; i++) {
+							const item = incidents[i];
+							addMessageToHistory(item);
+						}
+						break;
+					case 'created':
+						addMessageToHistory(data.data);
+						break;
+					default:
+						addMessageToHistory(data);
+				}
+			};
+
+			socket.onclose = function (event) {
+				console.log('Connection closed');
+			};
+
+			socket.onerror = function (event) {
+				console.error('Connection error');
+			};
+
+			function createIncident() {
+				const descriptionInput = document.getElementById('descriptionInput');
+				const latitudeInput = document.getElementById('latitudeInput');
+				const longitudeInput = document.getElementById('longitudeInput');
+
+				const data = {
+					type: 'create',
+					data: {
+						_id: generateUniqueId(),
+						description: descriptionInput.value,
+						lat: parseFloat(latitudeInput.value),
+						lon: parseFloat(longitudeInput.value),
+						status: 2,
+						incident_type_id: 2,
+					},
+				};
+
+				socket.send(JSON.stringify(data));
+				clearInputs();
+			}
+
+			function updateIncident() {
+				// Implementar la lógica para actualizar un incidente
+				const idInput = document.getElementById('idInput');
+				const latitudeInput = document.getElementById('latitudeInput');
+				const longitudeInput = document.getElementById('longitudeInput');
+
+				const data = {
+					type: 'update',
+					data: {
+						_id: idInput.value,
+						lat: parseFloat(latitudeInput.value),
+						lon: parseFloat(longitudeInput.value),
+					},
+				};
+
+				socket.send(JSON.stringify(data));
+
+				clearInputs();
+			}
+
+			function cancelIncident() {
+				// Implementar la lógica para cancelar un incidente
+				const idInput = document.getElementById('idInput');
+				const data = {
+					type: 'delete',
+					data: {
+						_id: idInput.value,
+					},
+				};
+
+				socket.send(JSON.stringify(data));
+
+				clearInputs();
+			}
+
+			function getIncident() {
+				// Implementar la lógica para cancelar un incidente
+				const data = {
+					type: 'get',
+				};
+
+				socket.send(JSON.stringify(data));
+			}
+
+			function cleanHistory() {
+				messageHistoryDiv.innerHTML = '';
+			}
+
+			function addMessageToHistory(message) {
+				// Borra el contenido existente
+				messageHistoryDiv.innerHTML += '<div>' + JSON.stringify(message) + '</div>';
+			}
+
+			function clearInputs() {
+				document.getElementById('descriptionInput').value = '';
+				document.getElementById('latitudeInput').value = '';
+				document.getElementById('longitudeInput').value = '';
+			}
+
+			function generateUniqueId() {
+				return 'test' + Math.random(0, 9999);
+			}
+		</script>
+	</body>
+</html>
