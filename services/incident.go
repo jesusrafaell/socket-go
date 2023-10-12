@@ -7,7 +7,7 @@ import (
 )
 
 type Incident struct {
-	// incidents *data.IncidentList  // No necesitas tener la referencia directa a IncidentList aquí
+	// incidents *data.IncidentList
 	manager *Manager
 	// sync.RWMutex
 }
@@ -18,7 +18,7 @@ func NewIncidents(manager *Manager) *Incident {
 	}
 }
 
-// HandleWebSocketMessage maneja los mensajes WebSocket relacionados con incidentes.
+// HandleWebSocketMessage manage events from incident
 func (is *Incident) HandleWebSocketMessage(client *Client, payload data.WebSocketMessage) {
 	// Obtiene la lista de incidentes desde el Manager
 	incidentList := is.manager.incidents
@@ -89,23 +89,22 @@ func (is *Incident) HandleWebSocketMessage(client *Client, payload data.WebSocke
 }
 
 func (is *Incident) handleGetIncidents(client *Client, incidentList *data.IncidentList) (string, error) {
-	// Obtener la lista de incidentes
 	allIncidents := incidentList.GetIncidents()
 
-	// Convertir la lista de incidentes a JSON
+	// convert to json
 	incidentsJSON, err := json.Marshal(allIncidents)
 	if err != nil {
 		log.Printf("Error al convertir la lista de incidentes a JSON: %v\n", err)
 		return "", err
 	}
 
-	// Crear un mensaje WebSocket con el tipo de acción y la lista de incidentes
+	// create format msg
 	message := data.WebSocketMessage{
 		Type: "listIncidents",
 		Data: json.RawMessage(incidentsJSON),
 	}
 
-	// Convertir el mensaje a JSON
+	// conver to json
 	messageJSON, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("Error al convertir el mensaje a JSON: %v\n", err)
@@ -113,32 +112,26 @@ func (is *Incident) handleGetIncidents(client *Client, incidentList *data.Incide
 	}
 
 	return string(messageJSON), nil
-	// Enviar el mensaje al cliente actual
-
 }
 
-// emitIncidentToClients envía un incidente a todos los clientes.
+// emitIncidentToClients send to all clients
 func (is *Incident) emitIncidentToClients(event string, incident data.Incident) {
-	// Convertir el incidente a JSON
 	incidentJSON, err := json.Marshal(incident)
 	if err != nil {
 		log.Printf("Error al convertir el incidente a JSON: %v\n", err)
 		return
 	}
 
-	// Crear un mensaje WebSocket con el tipo de acción y los datos del incidente
 	message := data.WebSocketMessage{
 		Type: event,
 		Data: json.RawMessage(incidentJSON),
 	}
 
-	// Convertir el mensaje a JSON
 	messageJSON, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("Error al convertir el mensaje a JSON: %v\n", err)
 		return
 	}
 
-	// Enviar el mensaje a todos los clientes
 	is.manager.sendMessageToAllClients(string(messageJSON))
 }

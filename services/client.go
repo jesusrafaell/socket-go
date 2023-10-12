@@ -52,7 +52,6 @@ func (c *Client) readMessages(m *Manager) {
 		}
 
 		// log.Printf("Recibed from client: %s\n", string(payload.Type))
-		// Procesar el mensaje según la acción
 		switch payload.Type {
 		case "create", "update", "delete", "get":
 			// Crear una instancia del servicio de Incidentes y manejar el mensaje

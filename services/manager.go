@@ -77,7 +77,7 @@ func (m *Manager) removeClient(client *Client) {
 	}
 }
 
-// sendMessageToAll envía un mensaje a todos los clientes.
+// send msg all clients
 func (m *Manager) sendMessageToAllClients(message string) {
 	m.Lock()
 	defer m.Unlock()

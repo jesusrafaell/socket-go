@@ -15,10 +15,8 @@ func main() {
 
 func NewServer() {
 
-	// Crear una instancia única de la lista de incidentes
 	incidentList := data.NewIncidentsList()
 
-	// Crear el servidor WebSocket
 	webSocket := services.NewManager(incidentList)
 
 	e := echo.New()
@@ -29,8 +27,8 @@ func NewServer() {
 		return c.String(http.StatusOK, "server run")
 	})
 
-	//scoket
+	//socket
 	e.GET("/ws", webSocket.ServerWS)
 
-	e.Logger.Fatal(e.Start(":8000"))
+	e.Logger.Fatal(e.Start(":8080"))
 }
